@@ -1,0 +1,158 @@
+<htmL>
+
+<head>
+    <title>Revenue Dept</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+
+    <script src="{{ url_for('static', filename='js/contractsDetails.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/web3.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/bootstrap.min.css') }}">
+    <script src="{{ url_for('static', filename='bootstrap/jquery-3.3.1.slim.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='bootstrap/popper.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='bootstrap/bootstrap.min.js') }}"></script>
+
+    <style>
+        body {
+            background-image: url('/assets/bg.jpg'); /* Replace with the path to your JPG image */
+            background-size: cover; /* Ensures the image covers the entire background */
+            background-repeat: no-repeat; /* Prevents the image from repeating */
+            background-attachment: fixed; /* Keeps the background fixed during scrolling */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            margin: 0; /* Remove default margin */
+            padding-top: 100px; /* Add padding to account for header */
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            font-family: 'Arial', sans-serif;
+            font-size: 40px;
+            color: #ffffff;
+            text-shadow: 2px 2px 5px #000000;
+            margin: 0;
+        }
+
+        #connectToBlockchainDiv {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #connectToBlockchainDiv h2 {
+            font-family: 'Verdana', sans-serif;
+            font-size: 28px;
+            color: #333333;
+            margin-bottom: 15px;
+        }
+
+        #connectToBlockchainDiv button {
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            color: #ffffff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #connectToBlockchainDiv button:hover {
+            background-color: #0056b3;
+        }
+
+        #passwordDiv {
+            text-align: center;
+            margin-top: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #passwordDiv input {
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        #passwordDiv button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #passwordDiv button:hover {
+            background-color: #218838;
+        }
+
+        #loadingDiv {
+            text-align: center;
+            margin-top: 20px;
+            color: #007bff;
+            font-size: 18px;
+        }
+
+        #notifyUser {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Welcome To Revenue Department Portal</h1>
+    </header>
+
+    <div id="connectToBlockchainDiv">
+        <h2>Connect Your Wallet</h2>
+        <button onclick="connectToBlockchain()">Connect</button>
+    </div>
+
+    <div id="passwordDiv" style="display: none;">
+        <input type="password" id="password" placeholder="Enter Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="loadingDiv" style="display: none;">
+        <span id="loadingText">Connecting to Wallet...</span>
+    </div>
+
+    <div id="notifyUser" class="alert"></div>
+
+    <script>
+        gsap.to("#connectToBlockchainDiv", { duration: 1, y: 50, opacity: 1 });
+    </script>
+</body>
+
+</htmL>
