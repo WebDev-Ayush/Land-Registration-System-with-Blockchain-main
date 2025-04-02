@@ -209,6 +209,19 @@ def logout():
 @app.route('/availableToBuy')
 def availableToBuy():
     return render_template('availableToBuy.html')
+@app.route('/MySales')
+def MySales():
+    return render_template('mySales.html')
 
+@app.route('/myRequestedSales')
+def myRequestedSales():
+    return render_template('myRequestedSales.html')
+
+@app.route('/example')
+def example():
+    return render_template('example.html')  # Ensure this is complete
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5003)
 
 
