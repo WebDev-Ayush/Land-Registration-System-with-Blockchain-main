@@ -204,9 +204,7 @@ This project contains mainly two steps:
    ```
 
 
-## Usage
-
-[Demo Video](https://youtu.be/CUQMihkrR0I) <br>      
+     
 
 
 
