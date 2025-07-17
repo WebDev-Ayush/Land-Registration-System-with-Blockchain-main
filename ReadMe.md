@@ -89,7 +89,7 @@ This project contains mainly two steps:
 1. Clone the repository:
 
    ```
-   git clone https://github.com/bhanuprasadChesetti/Land-Registraion-System-with-Blockchain.git
+   https://github.com/WebDev-Ayush/Land-Registration-System-with-Blockchain-main.git
    ```
 
 
