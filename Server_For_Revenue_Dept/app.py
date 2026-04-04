@@ -10,8 +10,9 @@ import json
 from utility.mapRevenueDeptToEmployee import mapRevenueDeptIdToEmployee
 
 # Get configuration info
+_config_dir = os.path.dirname(os.path.abspath(__file__))
 
-with open("config.json","r") as f:
+with open(os.path.join(_config_dir, "config.json"),"r") as f:
     config = json.load(f)
 
 
@@ -140,28 +141,19 @@ def get_pdf(propertyId):
 
 @app.route('/fetchContractDetails')
 def fetchContractDetails():
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    contracts_dir = os.path.join(base_dir, "Smart_contracts", "build", "contracts")
+
     usersContract = json.loads(
-            open(
-                    os.getcwd()+
-                    "/../"+"Smart_contracts/build/contracts/"+
-                    "Users.json"
-                    ).read()
+            open(os.path.join(contracts_dir, "Users.json")).read()
         )
     
     landRegistryContract = json.loads(
-            open(
-                    os.getcwd()+
-                    "/../"+"Smart_contracts/build/contracts/"+
-                    "LandRegistry.json"
-                    ).read()
+            open(os.path.join(contracts_dir, "LandRegistry.json")).read()
         )
 
     transferOwnerShip = json.loads(
-            open(
-                    os.getcwd()+
-                    "/../"+"Smart_contracts/build/contracts/"+
-                    "TransferOwnerShip.json"
-                    ).read()
+            open(os.path.join(contracts_dir, "TransferOwnerShip.json")).read()
         )
 
     response = {}

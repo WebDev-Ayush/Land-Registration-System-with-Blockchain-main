@@ -44,7 +44,7 @@ async function connectToBlockchain() {
                 {
                   chainId: '0x539', // 1337 in hex
                   chainName: 'Ganache',
-                  rpcUrls: ['http://0.0.0.0:7545'],
+                  rpcUrls: ['http://127.0.0.1:7545'],
                   nativeCurrency: {
                     name: 'ETH',
                     symbol: 'ETH',

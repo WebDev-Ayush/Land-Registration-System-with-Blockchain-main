@@ -58,6 +58,8 @@ declare namespace QueryString {
         allowEmptyArrays?: boolean | undefined;
         duplicates?: "combine" | "first" | "last" | undefined;
         strictDepth?: boolean | undefined;
+        strictMerge?: boolean | undefined;
+        throwOnLimitExceeded?: boolean | undefined;
     }
 
     type IParseDynamicOptions<AllowDots extends BooleanOptional> = AllowDots extends true

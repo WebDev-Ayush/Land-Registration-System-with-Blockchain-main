@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    AI Property Finder
+{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="css/propertyFinder.css">
+<script src="js/propertyFinder.js"></script>
+
+<script type="text/javascript">
+    checkConnection()
+</script>
+
+<div class="pf-container">
+
+    <div class="alert" role="alert" id="notifyUser"></div>
+
+    <!-- ─── Search Form ─────────────────────────────────── -->
+    <div class="pf-search-section">
+        <h2 class="pf-heading">
+            <span class="pf-icon">&#x1F3E0;</span> AI Property Finder
+        </h2>
+        <p class="pf-subtext">Tell us what you're looking for and our ML model will find the best matches for you.</p>
+
+        <form id="recommendForm" onsubmit="getRecommendations(event)">
+            <div class="pf-form-grid">
+
+                <!-- Budget -->
+                <div class="pf-field">
+                    <label for="budget">Budget (ETH)</label>
+                    <input type="number" id="budget" step="0.1" min="0" placeholder="e.g. 5" required>
+                </div>
+
+                <!-- Min Area -->
+                <div class="pf-field">
+                    <label for="minArea">Min Area (sq-ft)</label>
+                    <input type="number" id="minArea" min="0" placeholder="e.g. 1000" required>
+                </div>
+
+                <!-- Bedrooms -->
+                <div class="pf-field">
+                    <label for="bedrooms">Bedrooms</label>
+                    <select id="bedrooms">
+                        <option value="0">Any</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5+</option>
+                    </select>
+                </div>
+
+                <!-- Bathrooms -->
+                <div class="pf-field">
+                    <label for="bathrooms">Bathrooms</label>
+                    <select id="bathrooms">
+                        <option value="0">Any</option>
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                        <option value="3">3</option>
+                        <option value="4">4+</option>
+                    </select>
+                </div>
+
+                <!-- Property Type -->
+                <div class="pf-field">
+                    <label for="propertyType">Property Type</label>
+                    <select id="propertyType">
+                        <option value="">Any</option>
+                        <option value="apartment">Apartment</option>
+                        <option value="villa">Villa</option>
+                        <option value="independent_house">Independent House</option>
+                        <option value="plot">Plot / Land</option>
+                    </select>
+                </div>
+
+                <!-- Area Type -->
+                <div class="pf-field">
+                    <label for="areaType">Area Type</label>
+                    <select id="areaType">
+                        <option value="">Any</option>
+                        <option value="urban">Urban</option>
+                        <option value="suburban">Suburban</option>
+                        <option value="rural">Rural</option>
+                    </select>
+                </div>
+
+                <!-- Furnished -->
+                <div class="pf-field">
+                    <label for="furnished">Furnishing</label>
+                    <select id="furnished">
+                        <option value="">Any</option>
+                        <option value="furnished">Furnished</option>
+                        <option value="semi-furnished">Semi-Furnished</option>
+                        <option value="unfurnished">Unfurnished</option>
+                    </select>
+                </div>
+
+                <!-- Parking -->
+                <div class="pf-field">
+                    <label for="parking">Parking</label>
+                    <select id="parking">
+                        <option value="">Any</option>
+                        <option value="true">Required</option>
+                        <option value="false">Not Needed</option>
+                    </select>
+                </div>
+
+                <!-- Year Built -->
+                <div class="pf-field">
+                    <label for="yearBuilt">Built After (Year)</label>
+                    <input type="number" id="yearBuilt" min="1950" max="2030" placeholder="e.g. 2015">
+                </div>
+
+                <!-- Facilities -->
+                <div class="pf-field pf-field-wide">
+                    <label>Nearby Facilities</label>
+                    <div class="pf-facilities-grid">
+                        <label class="pf-checkbox"><input type="checkbox" value="school"> School</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="hospital"> Hospital</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="metro"> Metro</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="park"> Park</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="mall"> Mall</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="gym"> Gym</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="bus_stop"> Bus Stop</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="railway"> Railway</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="airport"> Airport</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="market"> Market</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="bank"> Bank</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="restaurant"> Restaurant</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="temple"> Temple</label>
+                        <label class="pf-checkbox"><input type="checkbox" value="playground"> Playground</label>
+                    </div>
+                </div>
+
+            </div>
+
+            <button type="submit" class="pf-submit-btn" id="searchBtn">
+                <span id="searchBtnText">&#x1F50D; Find Best Properties</span>
+                <span id="searchBtnLoading" style="display:none;">
+                    <div class="pf-spinner"></div> Analyzing...
+                </span>
+            </button>
+        </form>
+    </div>
+
+    <!-- ─── Results ──────────────────────────────────────── -->
+    <div id="resultsSection" style="display:none;">
+        <h3 class="pf-results-heading">
+            <span class="pf-icon">&#x2728;</span>
+            Top Recommendations
+            <span id="resultCount" class="pf-result-count"></span>
+        </h3>
+        <div id="resultsGrid" class="pf-results-grid"></div>
+    </div>
+
+    <!-- ─── No Results ───────────────────────────────────── -->
+    <div id="noResults" style="display:none;" class="pf-no-results">
+        <p>&#x1F614; No matching properties found. Try adjusting your preferences.</p>
+    </div>
+
+    <!-- ─── Model Info / Transparency Panel ──────────────── -->
+    <div class="pf-model-info">
+        <button class="pf-model-toggle" onclick="toggleModelInfo()">
+            &#x1F4CA; How does this work? (Model Info & Accuracy)
+        </button>
+        <div id="modelInfoPanel" style="display:none;">
+            <div id="modelInfoContent" class="pf-model-content">
+                <p style="color:#888;">Loading model info...</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

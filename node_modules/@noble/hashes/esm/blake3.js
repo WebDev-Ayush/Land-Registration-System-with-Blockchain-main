@@ -11,23 +11,23 @@
  * * It is still possible to make it faster using: a) loop unrolling b) web workers c) wasm
  * @module
  */
-import { abytes, aexists, anumber, aoutput } from './_assert.js';
-import { BLAKE } from './_blake.js';
-import { fromBig } from './_u64.js';
-import { B2S_IV, compress } from './blake2s.js';
-import { byteSwap32, isLE, toBytes, u32, u8, wrapXOFConstructorWithOpts, } from './utils.js';
+import { SHA256_IV } from "./_md.js";
+import { fromBig } from "./_u64.js";
+import { BLAKE2, compress } from "./blake2.js";
+// prettier-ignore
+import { abytes, aexists, anumber, aoutput, clean, createXOFer, swap32IfBE, toBytes, u32, u8 } from "./utils.js";
 // Flag bitset
-var B3_Flags;
-(function (B3_Flags) {
-    B3_Flags[B3_Flags["CHUNK_START"] = 1] = "CHUNK_START";
-    B3_Flags[B3_Flags["CHUNK_END"] = 2] = "CHUNK_END";
-    B3_Flags[B3_Flags["PARENT"] = 4] = "PARENT";
-    B3_Flags[B3_Flags["ROOT"] = 8] = "ROOT";
-    B3_Flags[B3_Flags["KEYED_HASH"] = 16] = "KEYED_HASH";
-    B3_Flags[B3_Flags["DERIVE_KEY_CONTEXT"] = 32] = "DERIVE_KEY_CONTEXT";
-    B3_Flags[B3_Flags["DERIVE_KEY_MATERIAL"] = 64] = "DERIVE_KEY_MATERIAL";
-})(B3_Flags || (B3_Flags = {}));
-const SIGMA = /* @__PURE__ */ (() => {
+const B3_Flags = {
+    CHUNK_START: 0b1,
+    CHUNK_END: 0b10,
+    PARENT: 0b100,
+    ROOT: 0b1000,
+    KEYED_HASH: 0b10000,
+    DERIVE_KEY_CONTEXT: 0b100000,
+    DERIVE_KEY_MATERIAL: 0b1000000,
+};
+const B3_IV = SHA256_IV.slice();
+const B3_SIGMA = /* @__PURE__ */ (() => {
     const Id = Array.from({ length: 16 }, (_, i) => i);
     const permute = (arr) => [2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8].map((i) => arr[i]);
     const res = [];
@@ -36,42 +36,40 @@ const SIGMA = /* @__PURE__ */ (() => {
     return Uint8Array.from(res);
 })();
 /** Blake3 hash. Can be used as MAC and KDF. */
-export class BLAKE3 extends BLAKE {
+export class BLAKE3 extends BLAKE2 {
     constructor(opts = {}, flags = 0) {
-        super(64, opts.dkLen === undefined ? 32 : opts.dkLen, {}, Number.MAX_SAFE_INTEGER, 0, 0);
-        this.flags = 0 | 0;
+        super(64, opts.dkLen === undefined ? 32 : opts.dkLen);
         this.chunkPos = 0; // Position of current block in chunk
         this.chunksDone = 0; // How many chunks we already have
+        this.flags = 0 | 0;
         this.stack = [];
         // Output
         this.posOut = 0;
         this.bufferOut32 = new Uint32Array(16);
         this.chunkOut = 0; // index of output chunk
         this.enableXOF = true;
-        this.outputLen = opts.dkLen === undefined ? 32 : opts.dkLen;
-        anumber(this.outputLen);
-        if (opts.key !== undefined && opts.context !== undefined)
-            throw new Error('Blake3: only key or context can be specified at same time');
-        else if (opts.key !== undefined) {
-            const key = toBytes(opts.key).slice();
-            if (key.length !== 32)
-                throw new Error('Blake3: key should be 32 byte');
-            this.IV = u32(key);
-            if (!isLE)
-                byteSwap32(this.IV);
+        const { key, context } = opts;
+        const hasContext = context !== undefined;
+        if (key !== undefined) {
+            if (hasContext)
+                throw new Error('Only "key" or "context" can be specified at same time');
+            const k = toBytes(key).slice();
+            abytes(k, 32);
+            this.IV = u32(k);
+            swap32IfBE(this.IV);
             this.flags = flags | B3_Flags.KEYED_HASH;
         }
-        else if (opts.context !== undefined) {
-            const context_key = new BLAKE3({ dkLen: 32 }, B3_Flags.DERIVE_KEY_CONTEXT)
-                .update(opts.context)
+        else if (hasContext) {
+            const ctx = toBytes(context);
+            const contextKey = new BLAKE3({ dkLen: 32 }, B3_Flags.DERIVE_KEY_CONTEXT)
+                .update(ctx)
                 .digest();
-            this.IV = u32(context_key);
-            if (!isLE)
-                byteSwap32(this.IV);
+            this.IV = u32(contextKey);
+            swap32IfBE(this.IV);
             this.flags = flags | B3_Flags.DERIVE_KEY_MATERIAL;
         }
         else {
-            this.IV = B2S_IV.slice();
+            this.IV = B3_IV.slice();
             this.flags = flags;
         }
         this.state = this.IV.slice();
@@ -86,7 +84,7 @@ export class BLAKE3 extends BLAKE {
         const { state: s, pos } = this;
         const { h, l } = fromBig(BigInt(counter), true);
         // prettier-ignore
-        const { v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15 } = compress(SIGMA, bufPos, buf, 7, s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], B2S_IV[0], B2S_IV[1], B2S_IV[2], B2S_IV[3], h, l, pos, flags);
+        const { v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15 } = compress(B3_SIGMA, bufPos, buf, 7, s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], B3_IV[0], B3_IV[1], B3_IV[2], B3_IV[3], h, l, pos, flags);
         s[0] = v0 ^ v8;
         s[1] = v1 ^ v9;
         s[2] = v2 ^ v10;
@@ -150,21 +148,16 @@ export class BLAKE3 extends BLAKE {
     }
     destroy() {
         this.destroyed = true;
-        this.state.fill(0);
-        this.buffer32.fill(0);
-        this.IV.fill(0);
-        this.bufferOut32.fill(0);
-        for (let i of this.stack)
-            i.fill(0);
+        clean(this.state, this.buffer32, this.IV, this.bufferOut32);
+        clean(...this.stack);
     }
     // Same as b2Compress, but doesn't modify state and returns 16 u32 array (instead of 8)
     b2CompressOut() {
         const { state: s, pos, flags, buffer32, bufferOut32: out32 } = this;
         const { h, l } = fromBig(BigInt(this.chunkOut++));
-        if (!isLE)
-            byteSwap32(buffer32);
+        swap32IfBE(buffer32);
         // prettier-ignore
-        const { v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15 } = compress(SIGMA, 0, buffer32, 7, s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], B2S_IV[0], B2S_IV[1], B2S_IV[2], B2S_IV[3], l, h, pos, flags);
+        const { v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, v15 } = compress(B3_SIGMA, 0, buffer32, 7, s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7], B3_IV[0], B3_IV[1], B3_IV[2], B3_IV[3], l, h, pos, flags);
         out32[0] = v0 ^ v8;
         out32[1] = v1 ^ v9;
         out32[2] = v2 ^ v10;
@@ -181,10 +174,8 @@ export class BLAKE3 extends BLAKE {
         out32[13] = s[5] ^ v13;
         out32[14] = s[6] ^ v14;
         out32[15] = s[7] ^ v15;
-        if (!isLE) {
-            byteSwap32(buffer32);
-            byteSwap32(out32);
-        }
+        swap32IfBE(buffer32);
+        swap32IfBE(out32);
         this.posOut = 0;
     }
     finish() {
@@ -192,16 +183,14 @@ export class BLAKE3 extends BLAKE {
             return;
         this.finished = true;
         // Padding
-        this.buffer.fill(0, this.pos);
+        clean(this.buffer.subarray(this.pos));
         // Process last chunk
         let flags = this.flags | B3_Flags.ROOT;
         if (this.stack.length) {
             flags |= B3_Flags.PARENT;
-            if (!isLE)
-                byteSwap32(this.buffer32);
+            swap32IfBE(this.buffer32);
             this.compress(this.buffer32, 0, true);
-            if (!isLE)
-                byteSwap32(this.buffer32);
+            swap32IfBE(this.buffer32);
             this.chunksDone = 0;
             this.pos = this.blockLen;
         }
@@ -258,5 +247,5 @@ export class BLAKE3 extends BLAKE {
  * const mac = blake3(data, { key: new Uint8Array(32) });
  * const kdf = blake3(data, { context: 'application name' });
  */
-export const blake3 = /* @__PURE__ */ wrapXOFConstructorWithOpts((opts) => new BLAKE3(opts));
+export const blake3 = /* @__PURE__ */ createXOFer((opts) => new BLAKE3(opts));
 //# sourceMappingURL=blake3.js.map

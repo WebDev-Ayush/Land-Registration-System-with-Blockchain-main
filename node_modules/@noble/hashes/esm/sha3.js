@@ -9,19 +9,21 @@
  * Check out `sha3-addons` module for cSHAKE, k12, and others.
  * @module
  */
-import { abytes, aexists, anumber, aoutput } from './_assert.js';
-import { rotlBH, rotlBL, rotlSH, rotlSL, split } from './_u64.js';
-import { byteSwap32, Hash, isLE, toBytes, u32, wrapConstructor, wrapXOFConstructorWithOpts, } from './utils.js';
+import { rotlBH, rotlBL, rotlSH, rotlSL, split } from "./_u64.js";
+// prettier-ignore
+import { abytes, aexists, anumber, aoutput, clean, createHasher, createXOFer, Hash, swap32IfBE, toBytes, u32 } from "./utils.js";
+// No __PURE__ annotations in sha3 header:
+// EVERYTHING is in fact used on every export.
 // Various per round constants calculations
+const _0n = BigInt(0);
+const _1n = BigInt(1);
+const _2n = BigInt(2);
+const _7n = BigInt(7);
+const _256n = BigInt(256);
+const _0x71n = BigInt(0x71);
 const SHA3_PI = [];
 const SHA3_ROTL = [];
 const _SHA3_IOTA = [];
-const _0n = /* @__PURE__ */ BigInt(0);
-const _1n = /* @__PURE__ */ BigInt(1);
-const _2n = /* @__PURE__ */ BigInt(2);
-const _7n = /* @__PURE__ */ BigInt(7);
-const _256n = /* @__PURE__ */ BigInt(256);
-const _0x71n = /* @__PURE__ */ BigInt(0x71);
 for (let round = 0, R = _1n, x = 1, y = 0; round < 24; round++) {
     // Pi
     [x, y] = [y, (2 * x + 3 * y) % 5];
@@ -37,7 +39,9 @@ for (let round = 0, R = _1n, x = 1, y = 0; round < 24; round++) {
     }
     _SHA3_IOTA.push(t);
 }
-const [SHA3_IOTA_H, SHA3_IOTA_L] = /* @__PURE__ */ split(_SHA3_IOTA, true);
+const IOTAS = split(_SHA3_IOTA, true);
+const SHA3_IOTA_H = IOTAS[0];
+const SHA3_IOTA_L = IOTAS[1];
 // Left rotation (without 0, 32, 64)
 const rotlH = (h, l, s) => (s > 32 ? rotlBH(h, l, s) : rotlSH(h, l, s));
 const rotlL = (h, l, s) => (s > 32 ? rotlBL(h, l, s) : rotlSL(h, l, s));
@@ -85,44 +89,47 @@ export function keccakP(s, rounds = 24) {
         s[0] ^= SHA3_IOTA_H[round];
         s[1] ^= SHA3_IOTA_L[round];
     }
-    B.fill(0);
+    clean(B);
 }
 /** Keccak sponge function. */
 export class Keccak extends Hash {
     // NOTE: we accept arguments in bytes instead of bits here.
     constructor(blockLen, suffix, outputLen, enableXOF = false, rounds = 24) {
         super();
+        this.pos = 0;
+        this.posOut = 0;
+        this.finished = false;
+        this.destroyed = false;
+        this.enableXOF = false;
         this.blockLen = blockLen;
         this.suffix = suffix;
         this.outputLen = outputLen;
         this.enableXOF = enableXOF;
         this.rounds = rounds;
-        this.pos = 0;
-        this.posOut = 0;
-        this.finished = false;
-        this.destroyed = false;
         // Can be passed from user as dkLen
         anumber(outputLen);
         // 1600 = 5x5 matrix of 64bit.  1600 bits === 200 bytes
         // 0 < blockLen < 200
-        if (0 >= this.blockLen || this.blockLen >= 200)
-            throw new Error('Sha3 supports only keccak-f1600 function');
+        if (!(0 < blockLen && blockLen < 200))
+            throw new Error('only keccak-f1600 function is supported');
         this.state = new Uint8Array(200);
         this.state32 = u32(this.state);
     }
+    clone() {
+        return this._cloneInto();
+    }
     keccak() {
-        if (!isLE)
-            byteSwap32(this.state32);
+        swap32IfBE(this.state32);
         keccakP(this.state32, this.rounds);
-        if (!isLE)
-            byteSwap32(this.state32);
+        swap32IfBE(this.state32);
         this.posOut = 0;
         this.pos = 0;
     }
     update(data) {
         aexists(this);
-        const { blockLen, state } = this;
         data = toBytes(data);
+        abytes(data);
+        const { blockLen, state } = this;
         const len = data.length;
         for (let pos = 0; pos < len;) {
             const take = Math.min(blockLen - this.pos, len - pos);
@@ -184,7 +191,7 @@ export class Keccak extends Hash {
     }
     destroy() {
         this.destroyed = true;
-        this.state.fill(0);
+        clean(this.state);
     }
     _cloneInto(to) {
         const { blockLen, suffix, outputLen, rounds, enableXOF } = this;
@@ -202,26 +209,26 @@ export class Keccak extends Hash {
         return to;
     }
 }
-const gen = (suffix, blockLen, outputLen) => wrapConstructor(() => new Keccak(blockLen, suffix, outputLen));
+const gen = (suffix, blockLen, outputLen) => createHasher(() => new Keccak(blockLen, suffix, outputLen));
 /** SHA3-224 hash function. */
-export const sha3_224 = /* @__PURE__ */ gen(0x06, 144, 224 / 8);
+export const sha3_224 = /* @__PURE__ */ (() => gen(0x06, 144, 224 / 8))();
 /** SHA3-256 hash function. Different from keccak-256. */
-export const sha3_256 = /* @__PURE__ */ gen(0x06, 136, 256 / 8);
+export const sha3_256 = /* @__PURE__ */ (() => gen(0x06, 136, 256 / 8))();
 /** SHA3-384 hash function. */
-export const sha3_384 = /* @__PURE__ */ gen(0x06, 104, 384 / 8);
+export const sha3_384 = /* @__PURE__ */ (() => gen(0x06, 104, 384 / 8))();
 /** SHA3-512 hash function. */
-export const sha3_512 = /* @__PURE__ */ gen(0x06, 72, 512 / 8);
+export const sha3_512 = /* @__PURE__ */ (() => gen(0x06, 72, 512 / 8))();
 /** keccak-224 hash function. */
-export const keccak_224 = /* @__PURE__ */ gen(0x01, 144, 224 / 8);
+export const keccak_224 = /* @__PURE__ */ (() => gen(0x01, 144, 224 / 8))();
 /** keccak-256 hash function. Different from SHA3-256. */
-export const keccak_256 = /* @__PURE__ */ gen(0x01, 136, 256 / 8);
+export const keccak_256 = /* @__PURE__ */ (() => gen(0x01, 136, 256 / 8))();
 /** keccak-384 hash function. */
-export const keccak_384 = /* @__PURE__ */ gen(0x01, 104, 384 / 8);
+export const keccak_384 = /* @__PURE__ */ (() => gen(0x01, 104, 384 / 8))();
 /** keccak-512 hash function. */
-export const keccak_512 = /* @__PURE__ */ gen(0x01, 72, 512 / 8);
-const genShake = (suffix, blockLen, outputLen) => wrapXOFConstructorWithOpts((opts = {}) => new Keccak(blockLen, suffix, opts.dkLen === undefined ? outputLen : opts.dkLen, true));
+export const keccak_512 = /* @__PURE__ */ (() => gen(0x01, 72, 512 / 8))();
+const genShake = (suffix, blockLen, outputLen) => createXOFer((opts = {}) => new Keccak(blockLen, suffix, opts.dkLen === undefined ? outputLen : opts.dkLen, true));
 /** SHAKE128 XOF with 128-bit security. */
-export const shake128 = /* @__PURE__ */ genShake(0x1f, 168, 128 / 8);
+export const shake128 = /* @__PURE__ */ (() => genShake(0x1f, 168, 128 / 8))();
 /** SHAKE256 XOF with 256-bit security. */
-export const shake256 = /* @__PURE__ */ genShake(0x1f, 136, 256 / 8);
+export const shake256 = /* @__PURE__ */ (() => genShake(0x1f, 136, 256 / 8))();
 //# sourceMappingURL=sha3.js.map

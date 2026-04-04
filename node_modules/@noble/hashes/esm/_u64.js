@@ -11,9 +11,10 @@ function fromBig(n, le = false) {
     return { h: Number((n >> _32n) & U32_MASK64) | 0, l: Number(n & U32_MASK64) | 0 };
 }
 function split(lst, le = false) {
-    let Ah = new Uint32Array(lst.length);
-    let Al = new Uint32Array(lst.length);
-    for (let i = 0; i < lst.length; i++) {
+    const len = lst.length;
+    let Ah = new Uint32Array(len);
+    let Al = new Uint32Array(len);
+    for (let i = 0; i < len; i++) {
         const { h, l } = fromBig(lst[i], le);
         [Ah[i], Al[i]] = [h, l];
     }
@@ -52,7 +53,7 @@ const add4H = (low, Ah, Bh, Ch, Dh) => (Ah + Bh + Ch + Dh + ((low / 2 ** 32) | 0
 const add5L = (Al, Bl, Cl, Dl, El) => (Al >>> 0) + (Bl >>> 0) + (Cl >>> 0) + (Dl >>> 0) + (El >>> 0);
 const add5H = (low, Ah, Bh, Ch, Dh, Eh) => (Ah + Bh + Ch + Dh + Eh + ((low / 2 ** 32) | 0)) | 0;
 // prettier-ignore
-export { fromBig, split, toBig, shrSH, shrSL, rotrSH, rotrSL, rotrBH, rotrBL, rotr32H, rotr32L, rotlSH, rotlSL, rotlBH, rotlBL, add, add3L, add3H, add4L, add4H, add5H, add5L, };
+export { add, add3H, add3L, add4H, add4L, add5H, add5L, fromBig, rotlBH, rotlBL, rotlSH, rotlSL, rotr32H, rotr32L, rotrBH, rotrBL, rotrSH, rotrSL, shrSH, shrSL, split, toBig };
 // prettier-ignore
 const u64 = {
     fromBig, split, toBig,

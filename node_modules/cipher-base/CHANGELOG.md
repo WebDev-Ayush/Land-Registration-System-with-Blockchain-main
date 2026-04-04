@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.0.7](https://github.com/browserify/cipher-base/compare/v1.0.6...v1.0.7) - 2025-09-24
+
+### Commits
+
+- [Refactor] use `to-buffer` [`fd1e5ee`](https://github.com/browserify/cipher-base/commit/fd1e5eeafccbc8eaa827ee6b9b60c14608aa784f)
+- [Dev Deps] update `@ljharb/eslint-config` [`08ba803`](https://github.com/browserify/cipher-base/commit/08ba8034223a53d300b7dccf33d8f14e52379a34)
+
 ## [v1.0.6](https://github.com/browserify/cipher-base/compare/v1.0.5...v1.0.6) - 2024-11-26
 
 ### Commits

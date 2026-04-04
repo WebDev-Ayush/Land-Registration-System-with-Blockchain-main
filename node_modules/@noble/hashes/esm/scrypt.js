@@ -2,10 +2,10 @@
  * RFC 7914 Scrypt KDF. Can be used to create a key from password and salt.
  * @module
  */
-import { anumber } from './_assert.js';
-import { pbkdf2 } from './pbkdf2.js';
-import { sha256 } from './sha256.js';
-import { asyncLoop, byteSwap32, checkOpts, isLE, rotl, u32 } from './utils.js';
+import { pbkdf2 } from "./pbkdf2.js";
+import { sha256 } from "./sha2.js";
+// prettier-ignore
+import { anumber, asyncLoop, checkOpts, clean, rotl, swap32IfBE, u32 } from "./utils.js";
 // The main Scrypt loop: uses Salsa extensively.
 // Six versions of the function were tried, this is the fastest one.
 // prettier-ignore
@@ -109,16 +109,17 @@ function scryptInit(password, salt, _opts) {
     const blockSize = 128 * r;
     const blockSize32 = blockSize / 4;
     // Max N is 2^32 (Integrify is 32-bit). Real limit is 2^22: JS engines Uint8Array limit is 4GB in 2024.
-    // Spec check `N >= 2 ** (blockSize / 8)` is not done for compat with popular libs,
+    // Spec check `N >= 2^(blockSize / 8)` is not done for compat with popular libs,
     // which used incorrect r: 1, p: 8. Also, the check seems to be a spec error:
     // https://www.rfc-editor.org/errata_search.php?rfc=7914
-    if (N <= 1 || (N & (N - 1)) !== 0 || N > 2 ** 32) {
+    const pow32 = Math.pow(2, 32);
+    if (N <= 1 || (N & (N - 1)) !== 0 || N > pow32) {
         throw new Error('Scrypt: N must be larger than 1, a power of 2, and less than 2^32');
     }
-    if (p < 0 || p > ((2 ** 32 - 1) * 32) / blockSize) {
+    if (p < 0 || p > ((pow32 - 1) * 32) / blockSize) {
         throw new Error('Scrypt: p must be a positive integer less than or equal to ((2^32 - 1) * 32) / (128 * r)');
     }
-    if (dkLen < 0 || dkLen > (2 ** 32 - 1) * 32) {
+    if (dkLen < 0 || dkLen > (pow32 - 1) * 32) {
         throw new Error('Scrypt: dkLen should be positive integer less than or equal to (2^32 - 1) * 32');
     }
     const memUsed = blockSize * (N + p);
@@ -149,9 +150,7 @@ function scryptInit(password, salt, _opts) {
 }
 function scryptOutput(password, dkLen, B, V, tmp) {
     const res = pbkdf2(sha256, password, B, { c: 1, dkLen });
-    B.fill(0);
-    V.fill(0);
-    tmp.fill(0);
+    clean(B, V, tmp);
     return res;
 }
 /**
@@ -172,8 +171,7 @@ function scryptOutput(password, dkLen, B, V, tmp) {
  */
 export function scrypt(password, salt, opts) {
     const { N, r, p, dkLen, blockSize32, V, B32, B, tmp, blockMixCb } = scryptInit(password, salt, opts);
-    if (!isLE)
-        byteSwap32(B32);
+    swap32IfBE(B32);
     for (let pi = 0; pi < p; pi++) {
         const Pi = blockSize32 * pi;
         for (let i = 0; i < blockSize32; i++)
@@ -193,8 +191,7 @@ export function scrypt(password, salt, opts) {
             blockMixCb();
         }
     }
-    if (!isLE)
-        byteSwap32(B32);
+    swap32IfBE(B32);
     return scryptOutput(password, dkLen, B, V, tmp);
 }
 /**
@@ -204,8 +201,7 @@ export function scrypt(password, salt, opts) {
  */
 export async function scryptAsync(password, salt, opts) {
     const { N, r, p, dkLen, blockSize32, V, B32, B, tmp, blockMixCb, asyncTick } = scryptInit(password, salt, opts);
-    if (!isLE)
-        byteSwap32(B32);
+    swap32IfBE(B32);
     for (let pi = 0; pi < p; pi++) {
         const Pi = blockSize32 * pi;
         for (let i = 0; i < blockSize32; i++)
@@ -226,8 +222,7 @@ export async function scryptAsync(password, salt, opts) {
             blockMixCb();
         });
     }
-    if (!isLE)
-        byteSwap32(B32);
+    swap32IfBE(B32);
     return scryptOutput(password, dkLen, B, V, tmp);
 }
 //# sourceMappingURL=scrypt.js.map

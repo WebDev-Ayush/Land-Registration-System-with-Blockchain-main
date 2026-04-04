@@ -15,6 +15,28 @@ async function connectToBlockchain()
         throw new Error('Contract details not loaded. Please refresh the page and try again.');
       }
 
+      // Switch to Ganache network (chainId 0x539 = 1337)
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0x539' }],
+        });
+      } catch (switchError) {
+        if (switchError.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+              chainId: '0x539',
+              chainName: 'Ganache Local',
+              rpcUrls: ['http://127.0.0.1:7545'],
+              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
+            }]
+          });
+        } else {
+          throw switchError;
+        }
+      }
+
       // Add timeout for MetaMask connection
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Connection timeout. Please try again.')), 30000);

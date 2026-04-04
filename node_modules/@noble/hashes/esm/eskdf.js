@@ -1,12 +1,11 @@
 /**
  * Experimental KDF for AES.
  */
-import { abytes } from './_assert.js';
-import { hkdf } from './hkdf.js';
-import { sha256 } from './sha256.js';
-import { pbkdf2 as _pbkdf2 } from './pbkdf2.js';
-import { scrypt as _scrypt } from './scrypt.js';
-import { bytesToHex, createView, hexToBytes, toBytes } from './utils.js';
+import { hkdf } from "./hkdf.js";
+import { pbkdf2 as _pbkdf2 } from "./pbkdf2.js";
+import { scrypt as _scrypt } from "./scrypt.js";
+import { sha256 } from "./sha256.js";
+import { abytes, bytesToHex, clean, createView, hexToBytes, kdfInputToBytes } from "./utils.js";
 // A tiny KDF for various applications like AES key-gen.
 // Uses HKDF in a non-standard way, so it's not "KDF-secure", only "PRF-secure".
 // Which is good enough: assume sha2-256 retained preimage resistance.
@@ -48,8 +47,7 @@ export function deriveMainSeed(username, password) {
     const scr = scrypt(password + sep.s, username + sep.s);
     const pbk = pbkdf2(password + sep.p, username + sep.p);
     const res = xor32(scr, pbk);
-    scr.fill(0);
-    pbk.fill(0);
+    clean(scr, pbk);
     return res;
 }
 /**
@@ -69,10 +67,10 @@ function getSaltInfo(protocol, accountId = 0) {
             throw new Error('accountId must be a number');
         if (!strHasLength(accountId, 1, 255))
             throw new Error('accountId must be string of length 1..255');
-        salt = toBytes(accountId);
+        salt = kdfInputToBytes(accountId);
     }
     else if (Number.isSafeInteger(accountId)) {
-        if (accountId < 0 || accountId > 2 ** 32 - 1)
+        if (accountId < 0 || accountId > Math.pow(2, 32) - 1)
             throw new Error('invalid accountId');
         // Convert to Big Endian Uint32
         salt = new Uint8Array(4);
@@ -81,7 +79,7 @@ function getSaltInfo(protocol, accountId = 0) {
     else {
         throw new Error('accountId must be a number' + (allowsStr ? ' or string' : ''));
     }
-    const info = toBytes(protocol);
+    const info = kdfInputToBytes(protocol);
     return { salt, info };
 }
 function countBytes(num) {
