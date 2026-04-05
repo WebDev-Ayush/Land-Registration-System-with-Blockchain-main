@@ -11,30 +11,8 @@ async function connectToBlockchain()
       notifyUser.style.display = "none"; // Clear any previous errors
 
       // Wait for contract details to be loaded
-      if (!window.localStorage.Users_ContractABI || !window.localStorage.Users_ContractAddress) {
+      if (!window.contractData) {
         throw new Error('Contract details not loaded. Please refresh the page and try again.');
-      }
-
-      // Switch to Ganache network (chainId 0x539 = 1337)
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: '0x539' }],
-        });
-      } catch (switchError) {
-        if (switchError.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-              chainId: '0x539',
-              chainName: 'Ganache Local',
-              rpcUrls: ['http://127.0.0.1:7545'],
-              nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 }
-            }]
-          });
-        } else {
-          throw switchError;
-        }
       }
 
       // Add timeout for MetaMask connection
@@ -62,41 +40,28 @@ async function connectToBlockchain()
 
       // Check network ID
       const networkId = await web3.eth.net.getId();
-      console.log('Current Network ID:', networkId);
-      if (networkId !== 1337) {
-        try {
-          // Attempt to switch to Ganache network (1337)
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0x539' }], // 1337 in hex
-          });
-        } catch (switchError) {
-          // This error code indicates that the chain has not been added to MetaMask.
-          if (switchError.code === 4902) {
-            try {
-              await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [
-                  {
-                    chainId: '0x539',
-                    chainName: 'Ganache',
-                    rpcUrls: ['http://127.0.0.1:7545'],
-                    nativeCurrency: {
-                      name: 'Ether',
-                      symbol: 'ETH',
-                      decimals: 18
-                    }
-                  },
-                ],
-              });
-            } catch (addError) {
-              throw new Error('Please switch to Ganache network (1337) in MetaMask.');
-            }
-          } else {
-            throw new Error('Please switch to Ganache network (1337) in MetaMask.');
-          }
-        }
+      const networkIdStr = networkId.toString();
+      console.log('Current Network ID:', networkIdStr);
+
+      // Verify if contract is deployed on this network
+      if (!window.contractData["Users"]["networks"][networkIdStr]) {
+        throw new Error(`Smart Contract not found on this network (ID: ${networkIdStr}). Please switch to Ganache.`);
       }
+
+      // Save the correct address for this network to localStorage for other pages
+      window.localStorage.Users_ContractAddress = window.contractData["Users"]["networks"][networkIdStr]["address"];
+      window.localStorage.Users_ContractABI = JSON.stringify(window.contractData["Users"]["abi"]);
+      
+      window.localStorage.LandRegistry_ContractAddress = window.contractData["LandRegistry"]["networks"][networkIdStr]["address"];
+      window.localStorage.LandRegistry_ContractABI = JSON.stringify(window.contractData["LandRegistry"]["abi"]);
+      
+      window.localStorage.TransferOwnership_ContractAddress = window.contractData["TransferOwnership"]["networks"][networkIdStr]["address"];
+      window.localStorage.TransferOwnership_ContractABI = JSON.stringify(window.contractData["TransferOwnership"]["abi"]);
+
+      const UsersContract = new web3.eth.Contract(
+        JSON.parse(window.localStorage.Users_ContractABI), 
+        window.localStorage.Users_ContractAddress
+      );
 
       window.localStorage.setItem("userAddress", accounts[0]);
       window.userAddress = accounts[0];
@@ -140,17 +105,10 @@ async function connectToBlockchain()
 
     } catch(error){
       console.error('Connection error:', error);
-      loadingDiv.style.color = "red";
-      loadingDiv.innerHTML = "Connection failed. Please try again.";
-      
-      let errorMsg = error.message || "Failed to connect to wallet. Please try again.";
-      if (errorMsg.includes("Returned values aren't valid")) {
-        errorMsg = "Smart Contract not found. Please make sure your MetaMask is connected to the Ganache network (http://127.0.0.1:7545) and the contracts are deployed.";
-      }
-      
-      notifyUser.innerText = errorMsg;
-      notifyUser.style.display = "block";
       closeTransactionLoading();
+      notifyUser.style.display = "block";
+      notifyUser.style.color = "red";
+      notifyUser.innerHTML = error.message || "Connection failed. Please try again.";
     }
 
   } else {

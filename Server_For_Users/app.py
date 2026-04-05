@@ -7,7 +7,7 @@ import os
 from ml_recommender import recommend, seed_sample_data, train_model, get_model_metrics
 
 # blockchain Network ID - update to match the network ID from the deployment
-NETWORK_CHAIN_ID = "1775301245182"  # Must match the Ganache network ID from truffle migrate
+NETWORK_CHAIN_ID = "1775301245182"  # Restored to original data ID
 
 # connect to MongoDB
 client = MongoClient('mongodb://localhost:27017')
@@ -120,15 +120,15 @@ def fetchContractDetails():
 
         response = {
             "Users": {
-                "address": usersContract["networks"][NETWORK_CHAIN_ID]["address"],
+                "networks": usersContract["networks"],
                 "abi": usersContract["abi"]
             },
             "LandRegistry": {
-                "address": landRegistryContract["networks"][NETWORK_CHAIN_ID]["address"],
+                "networks": landRegistryContract["networks"],
                 "abi": landRegistryContract["abi"]
             },
             "TransferOwnership": {
-                "address": transferOwnerShip["networks"][NETWORK_CHAIN_ID]["address"],
+                "networks": transferOwnerShip["networks"],
                 "abi": transferOwnerShip["abi"]
             }
         }

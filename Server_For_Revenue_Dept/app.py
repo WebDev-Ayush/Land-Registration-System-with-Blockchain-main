@@ -295,7 +295,7 @@ if __name__ == '__main__':
 
             admin = {
                 "adminAddress":adminAddress,
-                "password":generate_password_hash(adminPassword)
+                "password":generate_password_hash(adminPassword, method='pbkdf2:sha256')
             }
 
 

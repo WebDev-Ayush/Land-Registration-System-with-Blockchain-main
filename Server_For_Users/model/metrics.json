@@ -1,21 +1,21 @@
 {
-  "r2": 0.7661,
-  "mae": 6.82,
-  "rmse": 8.42,
-  "cv_r2_mean": 0.7533,
-  "cv_r2_std": 0.0106,
-  "n_training_samples": 5000,
+  "r2": 0.7634,
+  "mae": 6.6,
+  "rmse": 8.24,
+  "cv_r2_mean": 0.7589,
+  "cv_r2_std": 0.0101,
+  "n_training_samples": 10000,
   "n_features": 42,
   "feature_importances_top10": {
-    "price_ratio": 0.4512,
-    "area_ratio": 0.1685,
-    "bedroom_diff": 0.121,
-    "type_match": 0.0476,
-    "facility_overlap_ratio": 0.0463,
-    "prop_area": 0.0268,
-    "parking_match": 0.0262,
-    "prop_price": 0.0201,
-    "area_type_match": 0.0166,
-    "year_diff": 0.0122
+    "price_ratio": 0.4719,
+    "area_ratio": 0.1677,
+    "bedroom_diff": 0.1232,
+    "type_match": 0.0603,
+    "facility_overlap_ratio": 0.0446,
+    "parking_match": 0.0259,
+    "prop_area": 0.021,
+    "area_type_match": 0.0191,
+    "prop_price": 0.0138,
+    "furnished_match": 0.009
   }
 }
