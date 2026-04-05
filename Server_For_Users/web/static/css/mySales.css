@@ -1,40 +1,4 @@
-/* CSS  for Table */
-body {
-  counter-reset: Serial;
-}
-
-
-table {
-  margin: auto;
-  border-collapse: collapse;
-  width: 85%;
-}
-
-table th,
-table td {
-  padding: 8px;
-  text-align: left;
-  vertical-align: middle;
-  border: 1px solid #ddd;
-}
-
-table th {
-  background-color: #f2f2f2;
-}
-
-table caption {
-  font-size: 1.2rem;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 20px;
-  caption-side: top;
-}
-
-table thead th {
-  text-align: center;
-}
-
-
+/* Local table styling removed, using global base.css styles */
 
 tr td:first-child:before {
   counter-increment: Serial;

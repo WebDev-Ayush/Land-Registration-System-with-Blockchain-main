@@ -286,11 +286,69 @@ async function fetchPropertiesOfOwner() {
 
     tableBody.innerHTML = tableBodyCode;
 
+    // Track property status changes for notifications
+    trackPropertyStatusChanges(properties);
+
   }
   catch (error) {
     console.log(error);
   }
 
+}
+
+function trackPropertyStatusChanges(currentProperties) {
+  const lastStates = JSON.parse(localStorage.getItem('lastPropertyStates') || '{}');
+  const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+  let hasNew = false;
+
+  currentProperties.forEach(prop => {
+    const id = prop.propertyId;
+    const currentState = prop.state;
+    const lastState = lastStates[id];
+
+    if (lastState !== undefined && lastState !== currentState) {
+      let title = '';
+      let message = '';
+      let type = 'info';
+
+      const stateNames = {
+        0: 'Under Verification',
+        1: 'Scheduled',
+        2: 'Verified',
+        3: 'Rejected',
+        4: 'On Sale',
+        5: 'Bought'
+      };
+
+      title = `Property #${id} Status Updated`;
+      message = `Your property status changed from <b>${stateNames[lastState]}</b> to <b>${stateNames[currentState]}</b>.`;
+      
+      if (currentState == 2) type = 'success';
+      if (currentState == 3) type = 'danger';
+      if (currentState == 4) type = 'warning';
+
+      notifications.push({
+        id: Date.now() + Math.random(),
+        title: title,
+        message: message,
+        type: type,
+        timestamp: new Date().toISOString(),
+        seen: false
+      });
+      hasNew = true;
+    }
+    lastStates[id] = currentState;
+  });
+
+  if (hasNew) {
+    localStorage.setItem('userNotifications', JSON.stringify(notifications));
+    localStorage.setItem('lastPropertyStates', JSON.stringify(lastStates));
+    if (typeof updateNotificationUI === 'function') {
+      updateNotificationUI();
+    }
+  } else {
+    localStorage.setItem('lastPropertyStates', JSON.stringify(lastStates));
+  }
 }
 
 
@@ -430,18 +488,9 @@ function closePopup() {
 
 
 function showTransactionLoading(msg) {
-
-  loadingDiv = document.getElementById("loadingDiv");
-
-  loadingDiv.children[0].innerHTML = msg;
-
-  loadingDiv.style.display = "block";
 }
 
 function closeTransactionLoading() {
-  loadingDiv = document.getElementById("loadingDiv");
-
-  loadingDiv.style.display = "none";
 }
 
 

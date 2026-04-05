@@ -4,13 +4,10 @@ async function connectToBlockchain() {
     try {
       alertUser('','alert-info','none');
       showTransactionLoading();
-      document.getElementById("loadingDiv").innerHTML = "Loading contracts...";
 
       // Wait for contracts to load first
       await window.contractsLoaded;
       
-      document.getElementById("loadingDiv").innerHTML = "Connecting to MetaMask...";
-
       // Force disconnect first to ensure popup
       await window.ethereum.request({
         method: "wallet_requestPermissions",
@@ -68,20 +65,13 @@ async function connectToBlockchain() {
       window.localStorage.setItem("employeeId", accounts[0].toLowerCase()); // Convert to lowercase
       window.employeeId = accounts[0].toLowerCase(); // Convert to lowercase
 
-      // Update UI
-      const loadingDiv = document.getElementById("loadingDiv");
-      loadingDiv.style.color = "green";
-      loadingDiv.innerHTML = `Connected with : ${accounts[0]}<br>Enter Password`;
-
       document.getElementById("connectToBlockchainDiv").style.display = "none";
       document.getElementById("passwordDiv").style.display = "block";
-      document.getElementById("loadingDiv").style.display = "none";
 
       alertUser('Enter Your Password','alert-success','block');
 
     } catch (error) {
       console.error("Connection error:", error);
-      document.getElementById("loadingDiv").style.display = "none";
       if (error.code === 4001) {
         alertUser('Please connect your wallet to continue','alert-danger','block');
       } else if (error.message === 'No accounts found') {
@@ -142,14 +132,9 @@ function login() {
 }
 
 function showTransactionLoading() {
-  const loadingDiv = document.getElementById("loadingDiv");
-  loadingDiv.style.display = "block";
-  loadingDiv.style.color = "black";
 }
 
 function closeTransactionLoading() {
-  const loadingDiv = document.getElementById("loadingDiv");
-  loadingDiv.style.display = "none";
 }
 
 // show error reason to user

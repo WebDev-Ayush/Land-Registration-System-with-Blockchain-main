@@ -33,44 +33,9 @@ body {
 
 
 
-table {
+/* Redesigned Table Styles are now in base.css */
 
-  margin: auto;
-  border-collapse: collapse;
-  width: 85%;
-  /*! max-width: 800px; */
-}
-
-table th,
-table td {
-  padding: 8px;
-  text-align: left;
-  vertical-align: middle;
-  border: 1px solid #ddd;
-}
-
-table th {
-  background-color: #c0bdbd;
-}
-
-table caption {
-  font-size: 1.2rem;
-  font-weight: bold;
-  text-align: center;
-  color: black;
-  caption-side: top;
-}
-
-table thead th {
-  text-align: center;
-}
-
-table tbody tr:hover {
-  background-color: #d8d8d8;
-}
-
-/* 
-tr td:first-child:before {
+/* tr td:first-child:before {
   counter-increment: Serial;
   content: counter(Serial);
 
@@ -185,6 +150,23 @@ tr>td:nth-child(7) button:hover {
   top: -20px;
   text-align: center;
   text-decoration: underline;
+  color: #000000; /* Dark color for header */
+}
+
+#addProperty button[type="submit"] {
+  color: #ffffff !important; /* Force white text */
+  background-color: #3b82f6 !important; /* Modern Blue */
+  font-weight: bold;
+}
+
+#addProperty input {
+  color: #000000; /* Dark color for inputs */
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+}
+
+#addProperty label {
+  color: #000000; /* Dark color for labels */
 }
 
 
@@ -238,19 +220,29 @@ tr>td:nth-child(7) button:hover {
   margin-bottom: 10px;
 }
 
+#addProperty input[type="file"] {
+  color: #000000;
+  padding: 5px;
+}
+
 #prompt-container button[id="prompt-ok"] {
   width: 100px;
-  background-color: #36ff2f;
-  color: white;
+  background-color: #10b981; /* Emerald 500 for better visibility */
+  color: #ffffff !important;
   font-size: 20px;
   margin-right: 19px;
   padding: 0px 10px;
-
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
 }
 
 #prompt-container button[id="prompt-cancel"] {
-  background-color: #e61313;
-  color: white;
+  background-color: #ef4444; /* Red 500 for better visibility */
+  color: #ffffff !important;
   font-size: 20px;
   padding: 0px 20px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
 }

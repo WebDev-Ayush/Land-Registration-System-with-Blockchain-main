@@ -8,6 +8,7 @@
   <meta name="description" content="">
 
   <title> {% block title %} {% endblock %} </title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
   <link rel="stylesheet" href="css/nicepage.css" media="screen">
   <link rel="stylesheet" href="css/base.css" media="screen">
@@ -52,50 +53,192 @@
   <meta data-intl-tel-input-cdn-path="intlTelInput/">
 </head>
 
-<body class="u-body u-xl-mode" data-lang="en">
-  <header>
-    <div>
-      <h1> Welcome To Land Registry Portal</h1>
+<body class="u-body u-xl-mode dashboard-redesign" data-lang="en">
+  
+  <div class="background-overlay"></div>
+  <div class="earth-container">
+    <div class="earth"></div>
+  </div>
+
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1 class="text-3d-small" data-text="LAND REGISTRY PORTAL">LAND REGISTRY PORTAL</h1>
     </div>
   </header>
-  <section>
-
+  <section class="nav-section">
     <div id="navBar">
+      <div class="nav-container">
+        <!-- User name moved to top left -->
+        <button id="nameOfUser"></button>
 
-      <div>
+        <div class="nav-right-actions">
+          <!-- Add Property button outside the menu -->
+          {% if add_property %}
+          <button class="add-property-nav-btn" id="addPropertyButtonDiv" onclick="toggleAddProperty()">
+            Add Property
+          </button>
+          {% else %}
+          <a class="add-property-nav-btn" href="/dashboard">
+            Dashboard
+          </a>
+          {% endif %}
 
-        {% if add_property %}
-        <button class="dashboardLinks" id="addPropertyButtonDiv" onclick="toggleAddProperty()">
-          Add Property
-        </button>
-        {% else %}
-        <a class="dashboardLinks" href="/dashboard">
-          Dashboard
-        </a>
-        {% endif %}
+          <!-- Notification Bell -->
+          <div class="notification-container">
+            <button class="notification-trigger" onclick="toggleNotifications()">
+              <svg class="bell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span class="notification-badge" id="notificationBadge" style="display: none;">0</span>
+            </button>
+            <div class="notification-dropdown" id="notificationDropdown">
+              <div class="notification-header">
+                Notifications
+                <button class="clear-notifications" onclick="clearNotifications()">Clear All</button>
+              </div>
+              <div class="notification-list" id="notificationList">
+                <div class="no-notifications">No new notifications</div>
+              </div>
+            </div>
+          </div>
 
-
-
-        <a class="dashboardLinks" href="/MySales">Sales Created</a>
-
-        <a class="dashboardLinks" href="/myRequestedSales">Requested Sales</a>
-
-        <a class="dashboardLinks" href="/availableToBuy"> Available To Buy</a>
-
-        <a class="dashboardLinks" href="/propertyFinder" style="background: linear-gradient(135deg, #478ac9, #3a6fa8); color: #fff; border-radius: 6px; padding: 6px 14px;"> &#x1F50D; AI Property Finder</a>
-
-        <a class="dashboardLinks" href="/logout" onclick="logout()">Logout </a>
-
-        <button id="nameOfUser">
-        </button>
+          <!-- Hamburger Menu on the right -->
+          <div class="hamburger-menu">
+            <button class="menu-trigger" onclick="toggleMenu()">
+              <span class="menu-text">MENU</span>
+              <div class="hamburger-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </button>
+            
+            <div class="menu-dropdown" id="menuDropdown">
+              <a class="dashboardLinks" href="/MySales">Sales Created</a>
+              <a class="dashboardLinks" href="/myRequestedSales">Requested Sales</a>
+              <a class="dashboardLinks" href="/availableToBuy">Available To Buy</a>
+              <a class="dashboardLinks" href="/propertyFinder">AI Property Finder</a>
+              <a class="dashboardLinks logout-link" href="/logout" onclick="logout()">Logout</a>
+            </div>
+          </div>
+        </div>
       </div>
-
-
     </div>
-
-
-
   </section>
+
+  <script>
+    function toggleMenu() {
+      const dropdown = document.getElementById('menuDropdown');
+      const notificationDropdown = document.getElementById('notificationDropdown');
+      
+      // Close other dropdowns
+      if (notificationDropdown) notificationDropdown.classList.remove('active');
+      
+      dropdown.classList.toggle('active');
+    }
+
+    function toggleNotifications() {
+      const dropdown = document.getElementById('notificationDropdown');
+      const menuDropdown = document.getElementById('menuDropdown');
+      
+      // Close other dropdowns
+      if (menuDropdown) menuDropdown.classList.remove('active');
+      
+      dropdown.classList.toggle('active');
+      
+      // Mark as seen when opening
+      if (dropdown.classList.contains('active')) {
+        const badge = document.getElementById('notificationBadge');
+        badge.style.display = 'none';
+        badge.innerText = '0';
+        
+        // Update localStorage to mark all as seen
+        const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+        const updatedNotifications = notifications.map(n => ({ ...n, seen: true }));
+        localStorage.setItem('userNotifications', JSON.stringify(updatedNotifications));
+      }
+    }
+
+    function clearNotifications() {
+      localStorage.removeItem('userNotifications');
+      updateNotificationUI();
+    }
+
+    function updateNotificationUI() {
+      const list = document.getElementById('notificationList');
+      const badge = document.getElementById('notificationBadge');
+      const notifications = JSON.parse(localStorage.getItem('userNotifications') || '[]');
+      
+      if (notifications.length === 0) {
+        list.innerHTML = '<div class="no-notifications">No new notifications</div>';
+        badge.style.display = 'none';
+        badge.innerText = '0';
+      } else {
+        list.innerHTML = notifications.reverse().map(n => `
+          <div class="notification-item ${n.type}">
+            <div class="notification-title">${n.title}</div>
+            <div class="notification-message">${n.message}</div>
+            <div class="notification-time">${new Date(n.timestamp).toLocaleTimeString()}</div>
+          </div>
+        `).join('');
+        
+        const unseenCount = notifications.filter(n => !n.seen).length;
+        if (unseenCount > 0) {
+          badge.style.display = 'flex';
+          badge.innerText = unseenCount;
+        }
+      }
+    }
+
+    // Identify active page and add indicator
+    function setActiveMenuLink() {
+      const currentPath = window.location.pathname.toLowerCase();
+      const links = document.querySelectorAll('.menu-dropdown .dashboardLinks');
+      const menuTrigger = document.querySelector('.menu-trigger');
+      
+      let isAnyLinkActive = false;
+
+      links.forEach(link => {
+        const href = link.getAttribute('href').toLowerCase();
+        // Check for exact match or dashboard default
+        if (href === currentPath || (currentPath === '/dashboard' && href === '/dashboard')) {
+          link.classList.add('active-page');
+          isAnyLinkActive = true;
+          
+          // Remove existing dots if any (to prevent duplicates)
+          const existingDot = link.querySelector('.active-dot');
+          if (!existingDot) {
+            const dot = document.createElement('span');
+            dot.className = 'active-dot';
+            link.prepend(dot);
+          }
+        }
+      });
+
+      // If any menu link is active, highlight the MENU trigger slightly
+      if (isAnyLinkActive && menuTrigger) {
+        menuTrigger.style.borderColor = '#3b82f6';
+        menuTrigger.style.boxShadow = '0 0 10px rgba(59, 130, 246, 0.3)';
+      }
+    }
+
+    // Initialize notifications
+    window.addEventListener('DOMContentLoaded', () => {
+      setActiveMenuLink();
+      updateNotificationUI();
+    });
+
+    // Close menu when clicking outside
+    window.onclick = function(event) {
+      if (!event.target.closest('.hamburger-menu') && !event.target.closest('.notification-container')) {
+        const menuDropdown = document.getElementById('menuDropdown');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+        if (menuDropdown) menuDropdown.classList.remove('active');
+        if (notificationDropdown) notificationDropdown.classList.remove('active');
+      }
+    }
+  </script>
 
   
 

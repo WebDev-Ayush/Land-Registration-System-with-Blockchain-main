@@ -1,42 +1,4 @@
-body {
-  counter-reset: Serial;
-}
-
-
-
-table {
-  
-  margin: auto;
-  border-collapse: collapse;
-  width: 85%;
-  /*! max-width: 800px; */
-}
-
-table th,
-table td {
-  padding: 8px;
-  text-align: left;
-  vertical-align: middle;
-  border: 1px solid #ddd;
-}
-
-table th {
-  background-color: #f2f2f2;
-}
-
-table caption {
-  font-size: 1.2rem;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 20px;
-  caption-side: top;
-}
-
-table thead th {
-  text-align: center;
-}
-
-
+/* Local table styling removed, using global base.css styles */
 
 tr td:first-child:before {
   counter-increment: Serial;
@@ -160,6 +122,10 @@ tr>td:nth-child(6) {
   #formForTakingLocationId input{
   padding-left: 10px;
   height: 33px;
+  color: #000000; /* Dark color for visibility */
+  background-color: #ffffff; /* White background for visibility */
+  border: 1px solid #3b82f6; /* Blue border to match theme */
+  border-radius: 5px;
 }
 
   #formForTakingLocationId button{

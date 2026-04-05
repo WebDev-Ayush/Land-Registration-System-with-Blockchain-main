@@ -60,6 +60,44 @@ async function connectToBlockchain()
         throw new Error('No accounts found. Please connect your wallet.');
       }
 
+      // Check network ID
+      const networkId = await web3.eth.net.getId();
+      console.log('Current Network ID:', networkId);
+      if (networkId !== 1337) {
+        try {
+          // Attempt to switch to Ganache network (1337)
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0x539' }], // 1337 in hex
+          });
+        } catch (switchError) {
+          // This error code indicates that the chain has not been added to MetaMask.
+          if (switchError.code === 4902) {
+            try {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [
+                  {
+                    chainId: '0x539',
+                    chainName: 'Ganache',
+                    rpcUrls: ['http://127.0.0.1:7545'],
+                    nativeCurrency: {
+                      name: 'Ether',
+                      symbol: 'ETH',
+                      decimals: 18
+                    }
+                  },
+                ],
+              });
+            } catch (addError) {
+              throw new Error('Please switch to Ganache network (1337) in MetaMask.');
+            }
+          } else {
+            throw new Error('Please switch to Ganache network (1337) in MetaMask.');
+          }
+        }
+      }
+
       window.localStorage.setItem("userAddress", accounts[0]);
       window.userAddress = accounts[0];
 
@@ -73,6 +111,8 @@ async function connectToBlockchain()
         (async () => {
           let contractABI = JSON.parse(window.localStorage.Users_ContractABI);
           let contractAddress = window.localStorage.Users_ContractAddress;
+          console.log('Contract Address:', contractAddress);
+          console.log('Using Account:', accounts[0]);
           let contract = new window.web3.eth.Contract(contractABI, contractAddress);
           return await contract.methods.users(accounts[0]).call();
         })(),
@@ -102,7 +142,13 @@ async function connectToBlockchain()
       console.error('Connection error:', error);
       loadingDiv.style.color = "red";
       loadingDiv.innerHTML = "Connection failed. Please try again.";
-      notifyUser.innerText = error.message || "Failed to connect to wallet. Please try again.";
+      
+      let errorMsg = error.message || "Failed to connect to wallet. Please try again.";
+      if (errorMsg.includes("Returned values aren't valid")) {
+        errorMsg = "Smart Contract not found. Please make sure your MetaMask is connected to the Ganache network (http://127.0.0.1:7545) and the contracts are deployed.";
+      }
+      
+      notifyUser.innerText = errorMsg;
       notifyUser.style.display = "block";
       closeTransactionLoading();
     }

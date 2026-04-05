@@ -681,18 +681,9 @@ function alertUser(msg,msgType,display){
 
 
 function showTransactionLoading(msg) {
-
-  loadingDiv = document.getElementById("loadingDiv");
-
-  loadingDiv.children[0].innerHTML = msg;
-
-  loadingDiv.style.display = "block";
 }
 
 function closeTransactionLoading() {
-  loadingDiv = document.getElementById("loadingDiv");
-
-  loadingDiv.style.display = "none";
 }
 
 

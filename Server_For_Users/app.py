@@ -96,6 +96,17 @@ def get_pdf(propertyId):
 @app.route('/fetchContractDetails')
 def fetchContractDetails():
     try:
+        # Verify Ganache connection
+        w3 = Web3(HTTPProvider('http://127.0.0.1:7545'))
+        try:
+            if not w3.isConnected():
+                print("Failed to connect to Ganache")
+                return jsonify({"error": "Cannot connect to Ganache. Please make sure Ganache is running on port 7545."}), 500
+            print("Successfully connected to Ganache")
+        except Exception as e:
+            print(f"Error connecting to Ganache: {str(e)}")
+            return jsonify({"error": f"Error connecting to Ganache: {str(e)}"}), 500
+
         # Get the absolute path to the contracts directory
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         contracts_dir = os.path.join(base_dir, "Smart_contracts", "build", "contracts")

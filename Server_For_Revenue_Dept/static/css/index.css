@@ -16,25 +16,7 @@ header h1 {
 }
 
 
-#loadingDiv {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #e1e1e1e5;
-    z-index: 9999;
-    text-align: center;
-    padding-top: 15%;
-    
-}
-#loadingText{
-    font-size: 45px;
-}
-#loading {
-    font-size: 15px;
-}
+
 
 
 #notifyUser {

@@ -1,74 +1,179 @@
-.u-section-1 .u-sheet-1 {
-  min-height: 532px;
+/* Modern 3D Redesign */
+.home-redesign {
+  background: #0f172a !important; /* Dark Slate 900 */
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Open Sans', sans-serif;
 }
 
-.u-section-1 .u-text-1 {
-  letter-spacing: 2px;
-  font-size: 1.875rem;
-  text-transform: uppercase;
-  margin: 144px auto 0;
-}
-
-.u-section-1 .u-btn-1 {
-  letter-spacing: 1px;
-  border-style: none;
-  font-weight: 700;
-  text-transform: uppercase;
-  box-shadow: 2px 2px 8px 0px rgba(128, 128, 128, 1);
-  margin: 11px auto 60px;
-}
-
-@media (max-width: 1199px) {
-  .u-section-1 .u-text-1 {
-    width: auto;
-    margin-top: 160px;
-    margin-right: 266px;
-  }
-
-  .u-section-1 .u-btn-1 {
-    margin-top: 8px;
-  }
-}
-
-@media (max-width: 991px) {
-  .u-section-1 .u-text-1 {
-    margin-right: 203px;
-  }
-}
-
-@media (max-width: 767px) {
-  .u-section-1 .u-text-1 {
-    margin-right: 152px;
-  }
-}
-
-@media (max-width: 575px) {
-  .u-section-1 .u-text-1 {
-    margin-right: 96px;
-  }
-}
-
-
-
-
-#loadingDiv {
-  display: block;
+.background-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: #f3f2f1b0;
-  z-index: 9999;
-  text-align: center;
-  padding-top: 15%;
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.7) 0%, rgba(2, 6, 23, 1) 100%);
+  z-index: -1;
 }
 
+.earth-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  width: 600px;
+  height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+}
+
+.earth {
+  width: 400px;
+  height: 400px;
+  background: url('https://upload.wikimedia.org/wikipedia/commons/2/2c/Free_World_Map.jpg');
+  background-size: 800px 400px; /* Explicit size for 2:1 ratio map */
+  border-radius: 50%;
+  box-shadow: 
+    inset -40px -40px 100px 40px rgba(0, 0, 0, 0.9),
+    0 0 80px 10px rgba(59, 130, 246, 0.4);
+  animation: rotateEarth 20s linear infinite;
+  position: relative;
+}
+
+.earth::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: inset 10px 10px 30px rgba(255, 255, 255, 0.2);
+}
+
+@keyframes rotateEarth {
+  from { background-position: 0 0; }
+  to { background-position: 800px 0; }
+}
+
+.hero-container {
+  text-align: center;
+  perspective: 1000px;
+  z-index: 10;
+}
+
+.text-3d {
+  font-size: 5rem;
+  font-weight: 800;
+  color: #f8fafc;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.1;
+  position: relative;
+  text-shadow: 
+    0 1px 0 #94a3b8,
+    0 2px 0 #64748b,
+    0 3px 0 #475569,
+    0 4px 0 #334155,
+    0 5px 0 #1e293b,
+    0 15px 30px rgba(0,0,0,0.8);
+  letter-spacing: -2px;
+}
+
+.text-3d::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  transform: translateZ(-20px);
+  color: rgba(255, 255, 255, 0.05);
+  filter: blur(8px);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotateX(10deg) rotateY(-5deg); }
+  50% { transform: translateY(-20px) rotateX(-5deg) rotateY(10deg); }
+}
+
+.bottom-left-action {
+  position: fixed;
+  bottom: 40px;
+  left: 40px;
+  z-index: 100;
+}
+
+.lets-go-btn {
+  background: #3b82f6; /* Blue 500 */
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.lets-go-btn svg {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+}
+
+.lets-go-btn:hover {
+  background: #2563eb;
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.1);
+}
+
+.lets-go-btn:hover svg {
+  transform: translateX(5px);
+}
+
+.lets-go-btn:active {
+  transform: translateY(0) scale(0.95);
+}
 
 #notifyUser {
-  width: fit-content;
-  top: 89px;
-  margin: auto;
-  display: none;
-  font-size: 45px;
+  position: fixed;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  font-size: 1.1rem;
+  padding: 12px 24px;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+#loadingDiv {
+  background: rgba(15, 23, 42, 0.9) !important;
+  color: white;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  font-size: 1.5rem;
+}
+
+/* Hide original nicepage styles that might conflict */
+header, footer, section {
+  display: none !important;
 }
